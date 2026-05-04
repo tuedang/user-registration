@@ -35,17 +35,15 @@ class IpGeolocationClientTest {
     @Test
     void lookup_shouldReturnSuccess_whenApiReturnsSuccess() {
         String ip = "99.0.0.1";
-        URI expectedUri =
-                UriComponentsBuilder.fromUriString("http://localhost")
-                        .path("/json/{query}")
-                        .queryParam("fields", "status,message,countryCode,city")
-                        .buildAndExpand(ip)
-                        .encode()
-                        .toUri();
+        URI expectedUri = UriComponentsBuilder.fromUriString("http://localhost")
+                .path("/json/{query}")
+                .queryParam("fields", "status,message,countryCode,city")
+                .buildAndExpand(ip)
+                .encode()
+                .toUri();
 
-        mockServer.expect(requestTo(expectedUri)).andRespond(
-                withSuccess(
-                        """
+        mockServer.expect(requestTo(expectedUri))
+                .andRespond(withSuccess("""
                                 {"status":"success","message":"","countryCode":"CA","city":"Ottawa"}
                                 """,
                         MediaType.APPLICATION_JSON));

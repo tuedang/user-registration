@@ -41,17 +41,19 @@ class RegistrationControllerTest {
         when(registrationService.register(any(RegistrationRequest.class)))
                 .thenReturn(new RegistrationResponse("uid-1", "Welcome, alice! Your city is Toronto."));
 
-        MvcResult result =
-                mockMvc
-                        .perform(
-                                post("/api/register")
-                                        .contentType(MediaType.APPLICATION_JSON)
-                                        .content(
-                                                """
-                                                        {"username":"alice","password":"Secretpass1","ipAddress":"99.0.0.1"}
-                                                        """))
-                        .andExpect(status().isOk())
-                        .andReturn();
+        MvcResult result = mockMvc.perform(
+                        post("/api/register")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                            "username":"alice",
+                                            "password":"Secretpass1",
+                                            "ipAddress":"99.0.0.1"
+                                        }
+                                        """)
+                )
+                .andExpect(status().isOk())
+                .andReturn();
 
         RegistrationResponse body =
                 objectMapper.readValue(result.getResponse().getContentAsString(), RegistrationResponse.class);
@@ -62,51 +64,42 @@ class RegistrationControllerTest {
 
     @Test
     void register_shouldReturnBadRequest_whenUsernameIsBlank() throws Exception {
-        mockMvc
-                .perform(
-                        post("/api/register")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(
-                                        """
-                                                {"username":"  ","password":"Secretpass1","ipAddress":"99.0.0.1"}
-                                                """))
-                .andExpect(status().isBadRequest());
+        mockMvc.perform(
+                post("/api/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"username":"  ","password":"Secretpass1","ipAddress":"99.0.0.1"}
+                                """)
+        ).andExpect(status().isBadRequest());
     }
 
     @Test
     void register_shouldReturnBadRequest_whenPasswordTooShort() throws Exception {
-        mockMvc
-                .perform(
-                        post("/api/register")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(
-                                        """
-                                                {"username":"alice","password":"Short1A","ipAddress":"99.0.0.1"}
-                                                """))
-                .andExpect(status().isBadRequest());
+        mockMvc.perform(
+                post("/api/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"username":"alice","password":"Short1A","ipAddress":"99.0.0.1"}
+                                """)
+        ).andExpect(
+                status().isBadRequest());
     }
 
     @Test
     void register_shouldReturnBadRequest_whenNotEligible() throws Exception {
         when(registrationService.register(any(RegistrationRequest.class)))
-                .thenThrow(
-                        new RegistrationRuleException(
-                                "ipAddress", "User is not eligible to register (IP is not in Canada)."));
+                .thenThrow(new RegistrationRuleException("ipAddress", "User is not eligible to register (IP is not in Canada)."));
 
-        MvcResult result =
-                mockMvc
-                        .perform(
-                                post("/api/register")
-                                        .contentType(MediaType.APPLICATION_JSON)
-                                        .content(
-                                                """
-                                                        {"username":"alice","password":"Secretpass1","ipAddress":"8.8.8.8"}
-                                                        """))
-                        .andExpect(status().isBadRequest())
-                        .andReturn();
+        MvcResult result = mockMvc.perform(
+                        post("/api/register")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {"username":"alice","password":"Secretpass1","ipAddress":"8.8.8.8"}
+                                        """))
+                .andExpect(status().isBadRequest())
+                .andReturn();
 
-        ErrorResponse err =
-                objectMapper.readValue(result.getResponse().getContentAsString(), ErrorResponse.class);
+        ErrorResponse err = objectMapper.readValue(result.getResponse().getContentAsString(), ErrorResponse.class);
         assertThat(err.errors()).hasSize(1);
         assertThat(err.errors().getFirst().field()).isEqualTo("ipAddress");
         assertThat(err.errors().getFirst().message()).contains("not eligible");

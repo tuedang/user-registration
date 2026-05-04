@@ -11,7 +11,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.catchThrowableOfType;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -48,11 +48,10 @@ class RegistrationServiceTest {
         RegistrationRequest request =
                 new RegistrationRequest("bob", "Validpass9", "8.8.8.8");
 
-        RegistrationRuleException ex =
-                catchThrowableOfType(() -> registrationService.register(request), RegistrationRuleException.class);
-        assertThat(ex).isNotNull();
-        assertThat(ex.getField()).isEqualTo("ipAddress");
-        assertThat(ex.getMessage()).contains("not eligible");
+        assertThatThrownBy(() -> registrationService.register(request))
+                .isInstanceOf(RegistrationRuleException.class)
+                .hasFieldOrPropertyWithValue("field", "ipAddress")
+                .hasMessageContaining("not eligible");
     }
 
     @Test
@@ -60,13 +59,11 @@ class RegistrationServiceTest {
         when(ipGeolocationClient.lookup("0.0.0.0"))
                 .thenReturn(new IpApiResponse("fail", "invalid query", null, null));
 
-        RegistrationRequest request =
-                new RegistrationRequest("bob", "Validpass9", "0.0.0.0");
+        RegistrationRequest request = new RegistrationRequest("bob", "Validpass9", "0.0.0.0");
 
-        RegistrationRuleException ex =
-                catchThrowableOfType(() -> registrationService.register(request), RegistrationRuleException.class);
-        assertThat(ex).isNotNull();
-        assertThat(ex.getField()).isEqualTo("ipAddress");
-        assertThat(ex.getMessage()).contains("invalid query");
+        assertThatThrownBy(() -> registrationService.register(request))
+                .isInstanceOf(RegistrationRuleException.class)
+                .hasFieldOrPropertyWithValue("field", "ipAddress")
+                .hasMessageContaining("invalid query");
     }
 }

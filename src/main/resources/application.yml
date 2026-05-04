@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: user-registration
+
+ip-api:
+  base-url: http://ip-api.com
+
+management:
+  endpoints:
+    web:
+      base-path: /
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
+
+info:
+  app:
+    name: ${spring.application.name}
+    description: User registration simulation API

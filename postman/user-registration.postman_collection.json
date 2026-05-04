@@ -1,0 +1,233 @@
+{
+  "info": {
+    "_postman_id": "f3a0a8c6-77f5-4ee1-bd45-1087d6a9f251",
+    "name": "user-registration",
+    "description": "Spring Boot user-registration service: POST /api/register (validates payload, Canada-only IP via ip-api.com), plus Actuator health/info.\n\n**200 register:** Requires `ipAddress` geolocated to Canada (IP-API). Set collection variable `canadianIp` to a real CA address if the default fails.\n\nStart the app: `./gradlew bootRun` (default port 8080).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "2810345"
+  },
+  "item": [
+    {
+      "name": "registration",
+      "item": [
+        {
+          "name": "Register - success",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"alice\",\n  \"password\": \"Secretpass1\",\n  \"ipAddress\": \"{{canadianIp}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "register"
+              ]
+            },
+            "description": "Expect **200** with `userId` (UUID) and `message` (welcome + city). Fails with **400** if IP is not in Canada or ip-api cannot resolve it."
+          },
+          "response": []
+        },
+        {
+          "name": "Register - validation (blank username)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"\",\n  \"password\": \"Secretpass1\",\n  \"ipAddress\": \"8.8.8.8\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "register"
+              ]
+            },
+            "description": "Expect **400** and `errors` array with field messages."
+          },
+          "response": []
+        },
+        {
+          "name": "Register - validation (password too short)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"alice\",\n  \"password\": \"Short1A\",\n  \"ipAddress\": \"8.8.8.8\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "register"
+              ]
+            },
+            "description": "Password must be **> 8** chars with **1 digit** and **1 uppercase**. Expect **400**."
+          },
+          "response": []
+        },
+        {
+          "name": "Register - validation (password no digit)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"alice_in_wonderland\",\n  \"password\": \"OnlyLettersHere\",\n  \"ipAddress\": \"8.8.8.8\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "register"
+              ]
+            },
+            "description": "Expect **400** (password rules)."
+          },
+          "response": []
+        },
+        {
+          "name": "Register - not eligible (non-Canada IP)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"alice\",\n  \"password\": \"Secretpass1\",\n  \"ipAddress\": \"8.8.8.8\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "register"
+              ]
+            },
+            "description": "8.8.8.8 geolocates outside Canada. Expect **400** with `ipAddress` / not eligible message."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "actuator",
+      "item": [
+        {
+          "name": "health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            },
+            "description": "Actuator health. With `management.endpoints.web.base-path=/` this is **/health** (not `/actuator/health`)."
+          },
+          "response": []
+        },
+        {
+          "name": "Info",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/info",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "info"
+              ]
+            },
+            "description": "Actuator info (`info.app.*` from application.yml)."
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "canadianIp",
+      "value": "142.103.96.10",
+      "description": "Public IP geolocated to Canada (ip-api). Change if lookup returns non-CA."
+    }
+  ]
+}

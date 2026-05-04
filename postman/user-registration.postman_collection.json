@@ -1,6 +1,6 @@
 {
   "info": {
-    "_postman_id": "f3a0a8c6-77f5-4ee1-bd45-1087d6a9f251",
+    "_postman_id": "24e8f735-9a23-44b7-afd6-1a74f06c7673",
     "name": "user-registration",
     "description": "Spring Boot user-registration service: POST /api/register (validates payload, Canada-only IP via ip-api.com), plus Actuator health/info.\n\n**200 register:** Requires `ipAddress` geolocated to Canada (IP-API). Set collection variable `canadianIp` to a real CA address if the default fails.\n\nStart the app: `./gradlew bootRun` (default port 8080).",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
@@ -121,7 +121,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"alice_in_wonderland\",\n  \"password\": \"OnlyLettersHere\",\n  \"ipAddress\": \"8.8.8.8\"\n}",
+              "raw": "{\n  \"username\": \"alice_in_wonderland\",\n  \"password\": \"OnlyLettersHere\",\n  \"ipAddress\": \"{{canadianIp}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
